@@ -15,43 +15,36 @@
     --accent: #d4500a; --radius: 10px; --radius-sm: 6px;
   }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; }
-
-  /* Loading */
   #loading-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; gap: 16px; }
   .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading-text { font-size: 13px; color: var(--text-secondary); }
   .loading-sub { font-size: 11px; color: var(--text-tertiary); font-family: 'DM Mono', monospace; }
-
-  /* Error */
-  #error-screen { display: none; position: fixed; inset: 0; background: var(--bg); align-items: center; justify-content: center; z-index: 999; }
-  .error-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; max-width: 400px; text-align: center; }
+  #error-screen { display: none; position: fixed; inset: 0; background: var(--bg); align-items: center; justify-content: center; z-index: 999; padding: 24px; }
+  .error-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; max-width: 560px; width: 100%; }
   .error-title { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: #c0350d; }
-  .error-msg { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
-
+  .error-msg { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; }
+  .error-detail { font-family: 'DM Mono', monospace; font-size: 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; color: var(--text-secondary); white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; }
+  .retry-btn { margin-top: 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface2); color: var(--text); cursor: pointer; }
   #dashboard { display: none; }
-
   header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; }
   .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-mark { width: 32px; height: 32px; background: var(--accent); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 13px; letter-spacing: -0.5px; }
+  .logo-mark { width: 32px; height: 32px; background: var(--accent); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 13px; }
   .logo-text { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
   .logo-sub { font-size: 12px; color: var(--text-secondary); margin-left: 6px; }
   .header-right { display: flex; align-items: center; gap: 16px; }
   .header-meta { font-size: 12px; color: var(--text-tertiary); font-family: 'DM Mono', monospace; }
   .refresh-btn { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface2); color: var(--text-secondary); cursor: pointer; }
   .refresh-btn:hover { color: var(--text); border-color: var(--accent); }
-
   .main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
   .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 4px; }
   .page-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; }
-
   .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
   .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; position: relative; overflow: hidden; }
   .kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); opacity: 0.35; }
   .kpi-label { font-size: 11px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
   .kpi-val { font-size: 28px; font-weight: 600; letter-spacing: -1px; color: var(--text); line-height: 1; margin-bottom: 4px; }
   .kpi-sub { font-size: 11px; color: var(--text-tertiary); }
-
   .charts-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; margin-bottom: 20px; }
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   .card-head { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -84,7 +77,6 @@
   .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
   .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
   footer { text-align: center; padding: 24px; font-size: 11px; color: var(--text-tertiary); font-family: 'DM Mono', monospace; }
-
   @media (max-width: 900px) {
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
     .charts-row { grid-template-columns: 1fr; }
@@ -105,7 +97,9 @@
 <div id="error-screen">
   <div class="error-card">
     <div class="error-title">Could not load data</div>
-    <div class="error-msg" id="error-msg">There was a problem connecting to Google Sheets. Check your Apps Script deployment and try again.</div>
+    <div class="error-msg" id="error-msg"></div>
+    <div class="error-detail" id="error-detail"></div>
+    <button class="retry-btn" onclick="loadData()">Try again</button>
   </div>
 </div>
 
@@ -121,7 +115,6 @@
       <button class="refresh-btn" onclick="loadData()">&#8635; Refresh</button>
     </div>
   </header>
-
   <div class="main">
     <div class="page-title">Unsold Opportunity Pipeline</div>
     <div class="page-sub">All open estimates not yet sold — value shown as highest estimate per opportunity</div>
@@ -152,13 +145,9 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Opportunity</th>
-            <th>Customer</th>
-            <th>Territory manager</th>
-            <th style="text-align:center;">Estimates</th>
-            <th>Highest estimate</th>
-            <th>Last contact</th>
-            <th>Days since contact</th>
+            <th>Opportunity</th><th>Customer</th><th>Territory manager</th>
+            <th style="text-align:center;">Estimates</th><th>Highest estimate</th>
+            <th>Last contact</th><th>Days since contact</th>
           </tr></thead>
           <tbody id="tableBody"></tbody>
         </table>
@@ -188,37 +177,70 @@ let daysChartInstance = null;
 let processedData = [];
 
 function tmColor(name) { return TM_COLORS[name] || DEFAULT_COLOR; }
-function daysSince(d) { if(!d) return null; const t = new Date(); t.setHours(0,0,0,0); return Math.floor((t - new Date(d)) / 86400000); }
+function daysSince(d) {
+  if(!d) return null;
+  const t = new Date(); t.setHours(0,0,0,0);
+  const dt = new Date(d); dt.setHours(0,0,0,0);
+  return Math.floor((t - dt) / 86400000);
+}
 function fmtCur(v) { return '$' + Math.round(v).toLocaleString(); }
 function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : null; }
 function firstName(n) { return n ? n.toString().trim().split(' ')[0] : null; }
 function initials(n) { return n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase(); }
 
+function findCol(keys, ...candidates) {
+  for(const cand of candidates) {
+    const lower = cand.toLowerCase();
+    const match = keys.find(k => k.toLowerCase().includes(lower));
+    if(match) return match;
+  }
+  return null;
+}
+
 function processRawRows(rows) {
-  // Filter out grouping/header rows - keep only rows with a numeric opportunity number
+  if(!rows.length) return [];
+  const keys = Object.keys(rows[0]);
+
+  const COL = {
+    oppNum:   findCol(keys, 'opportunity number'),
+    estId:    findCol(keys, 'estimate id'),
+    estValue: findCol(keys, 'estimates subtotal', 'subtotal'),
+    customer: findCol(keys, 'customer name'),
+    tm:       findCol(keys, 'estimate created by', 'created by'),
+    callId:   findCol(keys, 'id (calls)', 'call id'),
+    callDate: findCol(keys, 'call date'),
+    callName: findCol(keys, 'name (calls)', 'call name'),
+  };
+
   const dataRows = rows.filter(r => {
-    const opp = r['Opportunity Number (Estimates)'];
-    return opp && !isNaN(parseFloat(opp));
+    const v = r[COL.oppNum];
+    if(v === null || v === undefined || v === '') return false;
+    const str = v.toString().trim();
+    return str !== '' && !isNaN(parseFloat(str)) && isFinite(str);
   });
 
-  // Deduplicate estimates: one row per unique Estimate ID
+  if(!dataRows.length) return [];
+
   const seenEstimates = new Set();
   const uniqueEstimates = dataRows.filter(r => {
-    const id = r['Estimate Id (Estimates)'];
-    if(!id || seenEstimates.has(id)) return false;
-    seenEstimates.add(id);
+    const id = r[COL.estId];
+    if(!id || id === '') return false;
+    const key = id.toString().trim();
+    if(seenEstimates.has(key)) return false;
+    seenEstimates.add(key);
     return true;
   });
 
-  // Group estimates by opportunity
   const oppMap = {};
   uniqueEstimates.forEach(r => {
-    const opp = String(Math.round(parseFloat(r['Opportunity Number (Estimates)'])));
+    const oppRaw = parseFloat(r[COL.oppNum].toString());
+    if(isNaN(oppRaw)) return;
+    const opp = String(Math.round(oppRaw));
     if(!oppMap[opp]) {
       oppMap[opp] = {
         opp,
-        customer: (r['Customer Name (Estimates)'] || '').toString().trim(),
-        tm: (r['Estimate Created By (Estimates)'] || '').toString().trim(),
+        customer: (r[COL.customer] || '').toString().trim(),
+        tm: (r[COL.tm] || '').toString().trim(),
         estimates: 0,
         maxValue: 0,
         lastContact: null,
@@ -226,30 +248,30 @@ function processRawRows(rows) {
       };
     }
     oppMap[opp].estimates++;
-    const val = parseFloat(r['Estimates Subtotal (Estimates)']) || 0;
+    const val = parseFloat(r[COL.estValue]) || 0;
     if(val > oppMap[opp].maxValue) oppMap[opp].maxValue = val;
   });
 
-  // Find last call per opportunity from ALL rows (calls repeat across estimate rows)
   const callMap = {};
   dataRows.forEach(r => {
-    const callId = r['ID (Calls)'];
-    if(!callId || isNaN(parseFloat(callId))) return;
-    const opp = String(Math.round(parseFloat(r['Opportunity Number (Estimates)'])));
-    const rawDate = r['Call Date (Calls)'];
+    const callId = r[COL.callId];
+    if(!callId || callId.toString().trim() === '') return;
+    const oppRaw = parseFloat(r[COL.oppNum].toString());
+    if(isNaN(oppRaw)) return;
+    const opp = String(Math.round(oppRaw));
+    const rawDate = r[COL.callDate];
     if(!rawDate) return;
     const callDate = new Date(rawDate);
-    if(isNaN(callDate)) return;
+    if(isNaN(callDate.getTime())) return;
     if(!callMap[opp] || callDate > callMap[opp].date) {
       callMap[opp] = {
         date: callDate,
         dateStr: callDate.toISOString().split('T')[0],
-        by: (r['Name (Calls)'] || '').toString().trim(),
+        by: (r[COL.callName] || '').toString().trim(),
       };
     }
   });
 
-  // Merge
   Object.keys(oppMap).forEach(opp => {
     if(callMap[opp]) {
       oppMap[opp].lastContact = callMap[opp].dateStr;
@@ -257,27 +279,22 @@ function processRawRows(rows) {
     }
   });
 
-  // Filter out opps with no TM (bad rows) and return sorted by value desc
   return Object.values(oppMap)
     .filter(o => o.tm && o.customer)
     .sort((a,b) => b.maxValue - a.maxValue);
 }
 
 function renderDashboard(data) {
-  const today = new Date(); today.setHours(0,0,0,0);
   const totalValue = data.reduce((s,r)=>s+r.maxValue, 0);
-  const withContact = data.filter(r=>r.lastContact);
   const noContactCount = data.filter(r=>!r.lastContact).length;
 
-  // KPIs
   document.getElementById('kpis').innerHTML = [
     {label:'Total opportunities', val:data.length, sub:'all unsold'},
     {label:'Total pipeline value', val:fmtCur(totalValue), sub:'highest estimate per opp'},
-    {label:'Avg opportunity value', val:fmtCur(totalValue / (data.length||1)), sub:'per opportunity'},
+    {label:'Avg opportunity value', val:fmtCur(totalValue/(data.length||1)), sub:'per opportunity'},
     {label:'No contact logged', val:noContactCount, sub:'need follow-up'},
   ].map(k=>`<div class="kpi"><div class="kpi-label">${k.label}</div><div class="kpi-val">${k.val}</div><div class="kpi-sub">${k.sub}</div></div>`).join('');
 
-  // TM bar chart
   const tmGroups = {};
   data.forEach(r=>{ tmGroups[r.tm]=(tmGroups[r.tm]||0)+r.maxValue; });
   const tmSorted = Object.entries(tmGroups).sort((a,b)=>b[1]-a[1]);
@@ -293,7 +310,6 @@ function renderDashboard(data) {
     `<div class="legend-item"><div class="legend-dot" style="background:${tmColor(tm).hex};"></div>${tm.split(' ')[0]} — ${fmtCur(v)}</div>`
   ).join('');
 
-  // Days donut
   const buckets={'0–7 days':0,'8–14 days':0,'15–21 days':0,'22+ days':0,'No contact':0};
   data.forEach(r=>{
     if(!r.lastContact){buckets['No contact']++;return;}
@@ -310,7 +326,6 @@ function renderDashboard(data) {
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{font:{size:11,family:'DM Sans'},boxWidth:10,padding:10,usePointStyle:true}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} opps`}}},cutout:'62%'}
   });
 
-  // Populate TM filter
   const tmFilter = document.getElementById('tmFilter');
   const currentFilter = tmFilter.value;
   tmFilter.innerHTML = '<option value="">All territory managers</option>';
@@ -321,7 +336,6 @@ function renderDashboard(data) {
   processedData = data;
   renderTable();
 
-  // Timestamp
   const now = new Date();
   document.getElementById('lastUpdated').textContent = 'Updated ' + now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
 }
@@ -361,11 +375,13 @@ function renderTable() {
   }).join('');
 }
 
-function showError(msg) {
+function showError(msg, detail) {
   document.getElementById('loading-screen').style.display = 'none';
   const err = document.getElementById('error-screen');
   err.style.display = 'flex';
-  if(msg) document.getElementById('error-msg').textContent = msg;
+  document.getElementById('error-msg').textContent = msg;
+  document.getElementById('error-detail').textContent = detail || '';
+  document.getElementById('error-detail').style.display = detail ? 'block' : 'none';
 }
 
 function loadData() {
@@ -376,19 +392,23 @@ function loadData() {
   fetch(SCRIPT_URL)
     .then(res => { if(!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
     .then(rows => {
-      if(!Array.isArray(rows) || rows.length === 0) throw new Error('No data returned from Google Sheets.');
+      if(!Array.isArray(rows) || rows.length === 0) {
+        throw new Error('No data came back from Google Sheets. Make sure your sheet has data and the script is deployed correctly.');
+      }
       const data = processRawRows(rows);
-      if(data.length === 0) throw new Error('Data was received but no valid opportunities were found. Check your sheet structure.');
+      if(data.length === 0) {
+        const sampleKeys = Object.keys(rows[0]).join(', ');
+        throw new Error('Data was received but no valid opportunities were found.\n\nColumns found in your sheet:\n' + sampleKeys + '\n\nThe dashboard looks for columns containing: "opportunity number", "estimate id", "estimates subtotal", "customer name", "estimate created by", "call date", "name (calls)".');
+      }
       document.getElementById('loading-screen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       renderDashboard(data);
     })
-    .catch(err => showError(err.message));
+    .catch(err => showError('Could not load data.', err.message));
 }
 
 document.getElementById('tmFilter').addEventListener('change', renderTable);
 document.getElementById('sortBy').addEventListener('change', renderTable);
-
 loadData();
 </script>
 </body>
