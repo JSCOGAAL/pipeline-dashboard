@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jackson Services — Unsold Opportunities</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f2ee; --surface: #ffffff; --surface2: #f9f8f6;
+    --border: rgba(0,0,0,0.08); --border-strong: rgba(0,0,0,0.14);
+    --text: #1a1815; --text-secondary: #6b6760; --text-tertiary: #a09d98;
+    --accent: #d4500a; --radius: 10px; --radius-sm: 6px;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; }
+
+  /* Loading */
+  #loading-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; gap: 16px; }
+  .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 13px; color: var(--text-secondary); }
+  .loading-sub { font-size: 11px; color: var(--text-tertiary); font-family: 'DM Mono', monospace; }
+
+  /* Error */
+  #error-screen { display: none; position: fixed; inset: 0; background: var(--bg); align-items: center; justify-content: center; z-index: 999; }
+  .error-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; max-width: 400px; text-align: center; }
+  .error-title { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: #c0350d; }
+  .error-msg { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+  #dashboard { display: none; }
+
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-mark { width: 32px; height: 32px; background: var(--accent); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 13px; letter-spacing: -0.5px; }
+  .logo-text { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+  .logo-sub { font-size: 12px; color: var(--text-secondary); margin-left: 6px; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .header-meta { font-size: 12px; color: var(--text-tertiary); font-family: 'DM Mono', monospace; }
+  .refresh-btn { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface2); color: var(--text-secondary); cursor: pointer; }
+  .refresh-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  .main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+  .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; position: relative; overflow: hidden; }
+  .kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); opacity: 0.35; }
+  .kpi-label { font-size: 11px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+  .kpi-val { font-size: 28px; font-weight: 600; letter-spacing: -1px; color: var(--text); line-height: 1; margin-bottom: 4px; }
+  .kpi-sub { font-size: 11px; color: var(--text-tertiary); }
+
+  .charts-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; margin-bottom: 20px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .card-head { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .card-title { font-size: 13px; font-weight: 600; letter-spacing: -0.2px; }
+  .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  select { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface2); color: var(--text); cursor: pointer; outline: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6760' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 26px; }
+  select:focus { border-color: var(--accent); }
+  .chart-pad { padding: 16px 20px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
+  thead th { padding: 10px 16px; text-align: left; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); border-bottom: 1px solid var(--border); white-space: nowrap; background: var(--surface2); }
+  td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #faf9f7; }
+  .opp-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-tertiary); }
+  .customer-name { font-weight: 500; font-size: 13px; }
+  .tm-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px 3px 4px; border-radius: 20px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .tm-dot { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 600; }
+  .val { font-weight: 600; font-size: 13px; letter-spacing: -0.3px; }
+  .contact-cell { display: flex; flex-direction: column; gap: 1px; }
+  .contact-date { font-size: 12px; color: var(--text-secondary); }
+  .contact-by { font-size: 11px; color: var(--text-tertiary); }
+  .stale-date { font-size: 12px; color: #c0350d; font-weight: 500; }
+  .stale-by { font-size: 11px; color: #c0350d; opacity: 0.7; }
+  .no-contact { font-size: 12px; color: var(--text-tertiary); font-style: italic; }
+  .days-stale { display: inline-flex; align-items: center; gap: 4px; background: #fdf2ef; color: #c0350d; font-size: 11px; font-weight: 600; padding: 3px 7px; border-radius: 4px; }
+  .days-fresh { font-size: 12px; color: var(--text-tertiary); font-family: 'DM Mono', monospace; }
+  .count-badge { display: inline-flex; align-items: center; justify-content: center; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: 11px; font-weight: 600; color: var(--text-secondary); padding: 2px 8px; margin-left: 6px; }
+  .legend-row { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px 20px; border-top: 1px solid var(--border); }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  footer { text-align: center; padding: 24px; font-size: 11px; color: var(--text-tertiary); font-family: 'DM Mono', monospace; }
+
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    .main { padding: 16px; }
+    header { padding: 0 16px; }
+    .logo-sub { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <div class="loading-text">Loading pipeline data...</div>
+  <div class="loading-sub">Fetching from Google Sheets</div>
+</div>
+
+<div id="error-screen">
+  <div class="error-card">
+    <div class="error-title">Could not load data</div>
+    <div class="error-msg" id="error-msg">There was a problem connecting to Google Sheets. Check your Apps Script deployment and try again.</div>
+  </div>
+</div>
+
+<div id="dashboard">
+  <header>
+    <div class="logo">
+      <div class="logo-mark">JS</div>
+      <span class="logo-text">Jackson Services</span>
+      <span class="logo-sub">Pipeline Report</span>
+    </div>
+    <div class="header-right">
+      <span class="header-meta" id="lastUpdated"></span>
+      <button class="refresh-btn" onclick="loadData()">&#8635; Refresh</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="page-title">Unsold Opportunity Pipeline</div>
+    <div class="page-sub">All open estimates not yet sold — value shown as highest estimate per opportunity</div>
+    <div class="kpi-grid" id="kpis"></div>
+    <div class="charts-row">
+      <div class="card">
+        <div class="card-head"><span class="card-title">Pipeline by territory manager</span></div>
+        <div class="chart-pad"><div style="position:relative;height:200px;"><canvas id="tmChart"></canvas></div></div>
+        <div class="legend-row" id="tmLegend"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">Contact recency</span></div>
+        <div class="chart-pad"><div style="position:relative;height:200px;"><canvas id="daysChart"></canvas></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">All opportunities <span class="count-badge" id="rowCount"></span></span>
+        <div class="controls">
+          <select id="tmFilter"><option value="">All territory managers</option></select>
+          <select id="sortBy">
+            <option value="value">Sort: highest value</option>
+            <option value="days">Sort: most stale</option>
+            <option value="opp">Sort: opportunity #</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Opportunity</th>
+            <th>Customer</th>
+            <th>Territory manager</th>
+            <th style="text-align:center;">Estimates</th>
+            <th>Highest estimate</th>
+            <th>Last contact</th>
+            <th>Days since contact</th>
+          </tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <footer>Jackson Services &nbsp;·&nbsp; HVAC &amp; Plumbing &nbsp;·&nbsp; East Alabama &amp; West Georgia</footer>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCduCrDucI-Xpw501WOLonNfRDQqQcxubmYLH904mYZeej6ySjbNHtPOHTClvCO3Fn/exec';
+
+const TM_COLORS = {
+  'Glen Strickland': {hex:'#5b4fcf',light:'#eeedfb'},
+  'Luke Thompson':   {hex:'#c4460d',light:'#fdf0ea'},
+  'David Wade':      {hex:'#1a7a57',light:'#e5f5ee'},
+  'Taylor Mock':     {hex:'#1a5fa8',light:'#e6f1fb'},
+  'Charlie Whitley': {hex:'#a06010',light:'#fdf4e6'},
+  'Patricia Smith':  {hex:'#a0304a',light:'#fceef2'},
+  'Allison Whitley': {hex:'#3a7a10',light:'#edf6e5'},
+  'Trevor Cottle':   {hex:'#606060',light:'#f2f2f2'},
+};
+const DEFAULT_COLOR = {hex:'#888780', light:'#f1efea'};
+
+let tmChartInstance = null;
+let daysChartInstance = null;
+let processedData = [];
+
+function tmColor(name) { return TM_COLORS[name] || DEFAULT_COLOR; }
+function daysSince(d) { if(!d) return null; const t = new Date(); t.setHours(0,0,0,0); return Math.floor((t - new Date(d)) / 86400000); }
+function fmtCur(v) { return '$' + Math.round(v).toLocaleString(); }
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : null; }
+function firstName(n) { return n ? n.toString().trim().split(' ')[0] : null; }
+function initials(n) { return n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase(); }
+
+function processRawRows(rows) {
+  // Filter out grouping/header rows - keep only rows with a numeric opportunity number
+  const dataRows = rows.filter(r => {
+    const opp = r['Opportunity Number (Estimates)'];
+    return opp && !isNaN(parseFloat(opp));
+  });
+
+  // Deduplicate estimates: one row per unique Estimate ID
+  const seenEstimates = new Set();
+  const uniqueEstimates = dataRows.filter(r => {
+    const id = r['Estimate Id (Estimates)'];
+    if(!id || seenEstimates.has(id)) return false;
+    seenEstimates.add(id);
+    return true;
+  });
+
+  // Group estimates by opportunity
+  const oppMap = {};
+  uniqueEstimates.forEach(r => {
+    const opp = String(Math.round(parseFloat(r['Opportunity Number (Estimates)'])));
+    if(!oppMap[opp]) {
+      oppMap[opp] = {
+        opp,
+        customer: (r['Customer Name (Estimates)'] || '').toString().trim(),
+        tm: (r['Estimate Created By (Estimates)'] || '').toString().trim(),
+        estimates: 0,
+        maxValue: 0,
+        lastContact: null,
+        contactBy: null,
+      };
+    }
+    oppMap[opp].estimates++;
+    const val = parseFloat(r['Estimates Subtotal (Estimates)']) || 0;
+    if(val > oppMap[opp].maxValue) oppMap[opp].maxValue = val;
+  });
+
+  // Find last call per opportunity from ALL rows (calls repeat across estimate rows)
+  const callMap = {};
+  dataRows.forEach(r => {
+    const callId = r['ID (Calls)'];
+    if(!callId || isNaN(parseFloat(callId))) return;
+    const opp = String(Math.round(parseFloat(r['Opportunity Number (Estimates)'])));
+    const rawDate = r['Call Date (Calls)'];
+    if(!rawDate) return;
+    const callDate = new Date(rawDate);
+    if(isNaN(callDate)) return;
+    if(!callMap[opp] || callDate > callMap[opp].date) {
+      callMap[opp] = {
+        date: callDate,
+        dateStr: callDate.toISOString().split('T')[0],
+        by: (r['Name (Calls)'] || '').toString().trim(),
+      };
+    }
+  });
+
+  // Merge
+  Object.keys(oppMap).forEach(opp => {
+    if(callMap[opp]) {
+      oppMap[opp].lastContact = callMap[opp].dateStr;
+      oppMap[opp].contactBy = callMap[opp].by;
+    }
+  });
+
+  // Filter out opps with no TM (bad rows) and return sorted by value desc
+  return Object.values(oppMap)
+    .filter(o => o.tm && o.customer)
+    .sort((a,b) => b.maxValue - a.maxValue);
+}
+
+function renderDashboard(data) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const totalValue = data.reduce((s,r)=>s+r.maxValue, 0);
+  const withContact = data.filter(r=>r.lastContact);
+  const noContactCount = data.filter(r=>!r.lastContact).length;
+
+  // KPIs
+  document.getElementById('kpis').innerHTML = [
+    {label:'Total opportunities', val:data.length, sub:'all unsold'},
+    {label:'Total pipeline value', val:fmtCur(totalValue), sub:'highest estimate per opp'},
+    {label:'Avg opportunity value', val:fmtCur(totalValue / (data.length||1)), sub:'per opportunity'},
+    {label:'No contact logged', val:noContactCount, sub:'need follow-up'},
+  ].map(k=>`<div class="kpi"><div class="kpi-label">${k.label}</div><div class="kpi-val">${k.val}</div><div class="kpi-sub">${k.sub}</div></div>`).join('');
+
+  // TM bar chart
+  const tmGroups = {};
+  data.forEach(r=>{ tmGroups[r.tm]=(tmGroups[r.tm]||0)+r.maxValue; });
+  const tmSorted = Object.entries(tmGroups).sort((a,b)=>b[1]-a[1]);
+
+  if(tmChartInstance) tmChartInstance.destroy();
+  tmChartInstance = new Chart(document.getElementById('tmChart'),{
+    type:'bar',
+    data:{labels:tmSorted.map(([tm])=>tm.split(' ')[0]),datasets:[{data:tmSorted.map(([,v])=>Math.round(v)),backgroundColor:tmSorted.map(([tm])=>tmColor(tm).hex),borderRadius:5,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' $'+ctx.raw.toLocaleString()}}},scales:{x:{grid:{display:false},ticks:{font:{size:11,family:'DM Sans'}}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:11,family:'DM Sans'},callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}}
+  });
+
+  document.getElementById('tmLegend').innerHTML = tmSorted.map(([tm,v])=>
+    `<div class="legend-item"><div class="legend-dot" style="background:${tmColor(tm).hex};"></div>${tm.split(' ')[0]} — ${fmtCur(v)}</div>`
+  ).join('');
+
+  // Days donut
+  const buckets={'0–7 days':0,'8–14 days':0,'15–21 days':0,'22+ days':0,'No contact':0};
+  data.forEach(r=>{
+    if(!r.lastContact){buckets['No contact']++;return;}
+    const d=daysSince(r.lastContact);
+    if(d<=7)buckets['0–7 days']++;
+    else if(d<=14)buckets['8–14 days']++;
+    else if(d<=21)buckets['15–21 days']++;
+    else buckets['22+ days']++;
+  });
+  if(daysChartInstance) daysChartInstance.destroy();
+  daysChartInstance = new Chart(document.getElementById('daysChart'),{
+    type:'doughnut',
+    data:{labels:Object.keys(buckets),datasets:[{data:Object.values(buckets),backgroundColor:['#1a7a57','#1a5fa8','#d4500a','#c4460d','#b0a9a0'],borderWidth:2,borderColor:'#ffffff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{font:{size:11,family:'DM Sans'},boxWidth:10,padding:10,usePointStyle:true}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} opps`}}},cutout:'62%'}
+  });
+
+  // Populate TM filter
+  const tmFilter = document.getElementById('tmFilter');
+  const currentFilter = tmFilter.value;
+  tmFilter.innerHTML = '<option value="">All territory managers</option>';
+  [...new Set(data.map(r=>r.tm))].sort().forEach(tm=>{
+    tmFilter.innerHTML += `<option value="${tm}"${tm===currentFilter?' selected':''}>${tm}</option>`;
+  });
+
+  processedData = data;
+  renderTable();
+
+  // Timestamp
+  const now = new Date();
+  document.getElementById('lastUpdated').textContent = 'Updated ' + now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+}
+
+function renderTable() {
+  const fTM = document.getElementById('tmFilter').value;
+  const sort = document.getElementById('sortBy').value;
+  let data = fTM ? processedData.filter(r=>r.tm===fTM) : [...processedData];
+  if(sort==='value') data.sort((a,b)=>b.maxValue-a.maxValue);
+  else if(sort==='days') data.sort((a,b)=>{const da=a.lastContact?daysSince(a.lastContact):-1,db=b.lastContact?daysSince(b.lastContact):-1;return db-da;});
+  else data.sort((a,b)=>a.opp.localeCompare(b.opp));
+
+  document.getElementById('rowCount').textContent = data.length;
+  document.getElementById('tableBody').innerHTML = data.map(r=>{
+    const ds = daysSince(r.lastContact);
+    const c = tmColor(r.tm);
+    const stale = ds !== null && ds >= 14;
+    const ini = initials(r.tm);
+    let contactCell, daysCell;
+    if(!r.lastContact){
+      contactCell = `<span class="no-contact">No calls logged</span>`;
+      daysCell = `<span class="no-contact">—</span>`;
+    } else {
+      const fn = firstName(r.contactBy) || r.contactBy;
+      contactCell = `<div class="contact-cell"><span class="${stale?'stale-date':'contact-date'}">${fmtDate(r.lastContact)}</span><span class="${stale?'stale-by':'contact-by'}">by ${fn}</span></div>`;
+      daysCell = stale ? `<span class="days-stale">&#9679; ${ds}d ago</span>` : `<span class="days-fresh">${ds}d ago</span>`;
+    }
+    return `<tr>
+      <td class="opp-num">#${r.opp}</td>
+      <td class="customer-name">${r.customer}</td>
+      <td><span class="tm-chip" style="background:${c.light};color:${c.hex};"><span class="tm-dot" style="background:${c.hex};color:#fff;">${ini}</span>${r.tm}</span></td>
+      <td style="text-align:center;color:#6b6760;">${r.estimates}</td>
+      <td class="val">${fmtCur(r.maxValue)}</td>
+      <td>${contactCell}</td>
+      <td>${daysCell}</td>
+    </tr>`;
+  }).join('');
+}
+
+function showError(msg) {
+  document.getElementById('loading-screen').style.display = 'none';
+  const err = document.getElementById('error-screen');
+  err.style.display = 'flex';
+  if(msg) document.getElementById('error-msg').textContent = msg;
+}
+
+function loadData() {
+  document.getElementById('loading-screen').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('error-screen').style.display = 'none';
+
+  fetch(SCRIPT_URL)
+    .then(res => { if(!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+    .then(rows => {
+      if(!Array.isArray(rows) || rows.length === 0) throw new Error('No data returned from Google Sheets.');
+      const data = processRawRows(rows);
+      if(data.length === 0) throw new Error('Data was received but no valid opportunities were found. Check your sheet structure.');
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      renderDashboard(data);
+    })
+    .catch(err => showError(err.message));
+}
+
+document.getElementById('tmFilter').addEventListener('change', renderTable);
+document.getElementById('sortBy').addEventListener('change', renderTable);
+
+loadData();
+</script>
+</body>
+</html>
