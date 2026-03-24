@@ -188,11 +188,16 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-US',{month:'
 function firstName(n) { return n ? n.toString().trim().split(' ')[0] : null; }
 function initials(n) { return n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase(); }
 
+// Flexible column finder — exact match first, then includes
 function findCol(keys, ...candidates) {
   for(const cand of candidates) {
     const lower = cand.toLowerCase();
-    const match = keys.find(k => k.toLowerCase().includes(lower));
-    if(match) return match;
+    // Try exact match first
+    const exact = keys.find(k => k.toLowerCase() === lower);
+    if(exact) return exact;
+    // Then try includes
+    const partial = keys.find(k => k.toLowerCase().includes(lower));
+    if(partial) return partial;
   }
   return null;
 }
@@ -201,17 +206,19 @@ function processRawRows(rows) {
   if(!rows.length) return [];
   const keys = Object.keys(rows[0]);
 
+  // Map column names — handles both raw Google Sheets headers and original Excel headers
   const COL = {
-    oppNum:   findCol(keys, 'opportunity number'),
-    estId:    findCol(keys, 'estimate id'),
-    estValue: findCol(keys, 'estimates subtotal', 'subtotal'),
-    customer: findCol(keys, 'customer name'),
-    tm:       findCol(keys, 'estimate created by', 'created by'),
-    callId:   findCol(keys, 'id (calls)', 'call id'),
-    callDate: findCol(keys, 'call date'),
-    callName: findCol(keys, 'name (calls)', 'call name'),
+    oppNum:    findCol(keys, 'opportunity number'),
+    estId:     findCol(keys, 'estimate id'),
+    estValue:  findCol(keys, 'estimates subtotal', 'subtotal'),
+    customer:  findCol(keys, 'customer name'),
+    tm:        findCol(keys, 'estimate created by', 'created by'),
+    callId:    findCol(keys, 'id', 'call id'),
+    callDate:  findCol(keys, 'call date'),
+    callName:  findCol(keys, 'name', 'call name'),
   };
 
+  // Filter to rows that have a numeric opportunity number
   const dataRows = rows.filter(r => {
     const v = r[COL.oppNum];
     if(v === null || v === undefined || v === '') return false;
@@ -221,6 +228,7 @@ function processRawRows(rows) {
 
   if(!dataRows.length) return [];
 
+  // Deduplicate by estimate ID for value calculation
   const seenEstimates = new Set();
   const uniqueEstimates = dataRows.filter(r => {
     const id = r[COL.estId];
@@ -231,6 +239,7 @@ function processRawRows(rows) {
     return true;
   });
 
+  // Build opportunity map from unique estimates
   const oppMap = {};
   uniqueEstimates.forEach(r => {
     const oppRaw = parseFloat(r[COL.oppNum].toString());
@@ -252,6 +261,7 @@ function processRawRows(rows) {
     if(val > oppMap[opp].maxValue) oppMap[opp].maxValue = val;
   });
 
+  // Find most recent call per opportunity from ALL rows
   const callMap = {};
   dataRows.forEach(r => {
     const callId = r[COL.callId];
@@ -272,6 +282,7 @@ function processRawRows(rows) {
     }
   });
 
+  // Merge calls into opp map
   Object.keys(oppMap).forEach(opp => {
     if(callMap[opp]) {
       oppMap[opp].lastContact = callMap[opp].dateStr;
@@ -398,7 +409,10 @@ function loadData() {
       const data = processRawRows(rows);
       if(data.length === 0) {
         const sampleKeys = Object.keys(rows[0]).join(', ');
-        throw new Error('Data was received but no valid opportunities were found.\n\nColumns found in your sheet:\n' + sampleKeys + '\n\nThe dashboard looks for columns containing: "opportunity number", "estimate id", "estimates subtotal", "customer name", "estimate created by", "call date", "name (calls)".');
+        throw new Error(
+          'Data was received but no valid opportunities were found.\n\nColumns found in your sheet:\n' + sampleKeys +
+          '\n\nThe dashboard looks for columns containing: "opportunity number", "estimate id", "estimates subtotal", "customer name", "estimate created by", "call date", "name (calls)".'
+        );
       }
       document.getElementById('loading-screen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
